@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="direction: rtl;" class="wrapper">
+
+
+
+
+    <!-- Content Wrapper. Contains page content -->
+    <div   class="content-wrapper">
+      <!-- Content Header (Page header) -->
+  
+  
+      <!--الاحصائيات-->
+      <div class="content">
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header border-0">
+                  <div class="d-flex justify-content-between">
+                    <h3 class="card-title">اجمالي عدد الكتب</h3>                    
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex">
+                    <p class="d-flex flex-column">
+                      <span class="text-bold text-lg">{{allbooks}}</span>
+                      <span>اجمالي عدد الكتب</span>
+                    </p>  
+                  </div>
+                  <!-- /.d-flex -->
+
+                  <div class="position-relative mb-4">
+                    <canvas id="visitors-chart" height="200"></canvas>
+                  </div>  
+                </div>
+              </div>
+              <!-- /.card -->
+            </div>
+            <!-- /.col-md-6 -->
+            {% for book in books %}
+            {% if book.price != None %}
+            {% if book.status == 'sold' %}
+            <p class="totalprice">{{book.price}}</p>
+            {% endif %}
+            {% endif %}
+            {% if book.total_rental_price != None %}
+            {% if book.status == 'rentaled' %}
+              <p class="totalprice">{{book.total_rental_price}}</p>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+
+
+            <!-- Rentals Books -->
+            {% for book in books %}
+            {% if book.status == 'rentaled' %}
+            {% if book.total_rental_price != None %}
+              <p class="totalrental">{{book.total_rental_price}}</p>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+            <p class="salaryrental"></p>
+
+            <!-- Sold Books -->
+            {% for book in books %}
+            {% if book.status == 'sold' %}
+            {% if book.price != None %}
+              <p class="totalsold">{{book.price}}</p>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+            <p class="salarysold"></p>
+
+
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header border-0">
+                  <div class="d-flex justify-content-between">
+                    <h3 class="card-title">الارباح</h3>   
+                  </div>
+                </div>    
+                <div class="card-body">
+                  <div class="d-flex">
+                    <p class="d-flex flex-column">
+                      <span id="totalsalarys" class="text-bold text-lg">$</span><br></p>
+                  </div>
+                  <!-- /.d-flex -->
+  
+                  <div class="position-relative mb-4">
+                    <canvas id="sales-chart" height="160"></canvas>
+                  </div>
+  
+                  <div class="d-flex flex-row justify-content-end">
+                    <span class="mr-2">
+                      <i class="fas fa-square text-primary"></i> الارباح من بيع الكتب
+                      <p id="soldtotals"></p>     
+                    </span>
+                    <span>
+                      <i class="fas fa-square text-gray"></i> الارباح من استعارة الكتب
+                      <p id="rentedtotals"></p>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+        
+            <!-- /.col-md-6 -->
+          </div>
+          <!-- /.row -->
+  
+          <!-- form add books -->
+          <div class="row m-1 mb-3">   
+            <a href="#bookform" class="btn btn-primary" data-toggle="collapse">+ اضافة كتاب</a>
+          </div>
+          
+          <div id="bookform" class="card card-primary collapse">
+            <div class="card-header">
+              <h3 class="card-title">اضافة كتاب</h3>
+            </div>
+            <!-- /.card-header -->
+            <!-- form start -->
+            <form method="POST" enctype="multipart/form-data"  > 
+              <div class="card-body"> 
+                {% csrf_token %}
+                {{form.as_p}}  
+              </div>
+              <!-- /.card-body -->
+              <div class="card-footer">
+                <button type="submit" class="btn btn-primary">اضافة</button>
+              </div>
+            </form>
+          </div>
+  
+                <!-- /.card -->
+          </div>
+          <!-- end form add books -->
+  
+  
+          <!-- تصنيفات -->
+          <div class="row justify-content-center mb-4">
+            <div class="col-12 text-center">
+              <div class="btn-group flex-wrap" role="group" aria-label="Book Categories">
+                <ul class="nav">
+                {% for category in categories %}
+                <li class="nav-item category{{category.id}}">
+                  <a href="#" class="btn btn-outline-primary m-1">
+                    {{ category.name }}
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+              </div>
+            </div>
+          </div>
+          <!-- books -->
+
+
+              <div class="row">
+
+              {% for book in books %}
+               <div id ="" class="col-md-4 bookhide book{{book.category.id}} book{{book.status}} mb-4">
+              <div class="card card-widget widget-user shadow">
+    
+    <!-- زر الخيارات -->
+    <div style="position: absolute; top: 10px; right: 10px;" class="btn-group">
+      <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      </button>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" href="{% url 'update' book.id %}">تعديل</a>
+        <a class="dropdown-item" href="{% url 'delete' book.id %}">حذف</a>
+      </div>
+    </div>
+
+    <!-- رأس الكارت مع صورة الكتاب -->
+    {% if book.photo_book %}
+    <div class="widget-user-header text-white" style="background: url('{{ book.photo_book.url }}'); background-size: cover; background-position: center; padding: 60px 20px;">
+    {% else %}
+    <div class="widget-user-header bg-info text-white" style="padding: 60px 20px;">
+    {% endif %}
+      <h3 class="widget-user-username font-weight-bold" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.7);">{{ book.title }}</h3>
+      <h5 class="widget-user-desc" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.6);">{{ book.author }}</h5>
+    </div>
+
+    <!-- صورة المؤلف -->
+    {% if book.photo_author %}
+    <div class="widget-user-image" style="top: -40px;">
+      <img class="img-circle elevation-2 border border-white shadow" style="width: 90px; height: 90px;" src="{{ book.photo_author.url }}" alt="Author">
+    </div>
+    {% endif %}
+
+    <!-- محتوى التفاصيل -->
+    <div class="card-footer pt-5">
+      <div class="row text-center">
+
+        <!-- الصفحات -->
+        <div class="col-sm-4 border-right">
+          <div class="description-block">
+            <h5 class="description-header text-dark">{{ book.pages }}</h5>
+            <span class="description-text text-muted">صفحة</span>
+          </div>
+        </div>
+
+        <!-- السعر -->
+        <div class="col-sm-4 border-right">
+            <div class="description-block">
+              {% if book.status == 'rentaled' and book.retal_price_day %}
+                <h5 class="description-header text-dark">${{ book.retal_price_day }}</h5>
+                <span class="description-text text-muted">في اليوم</span>
+              {% elif book.price %}
+                <h5 class="description-header text-dark">${{ book.price }}</h5>
+                <span class="description-text text-muted">السعر</span>
+              {% endif %}
+            </div>
+
+        </div>
+
+        <!-- الحالة -->
+        <div class="col-sm-4">
+          <div class="description-block">
+            {% if book.status == 'available' %}
+              <h5 class="description-header text-success font-weight-bold">متاح</h5>
+            {% elif book.status == 'sold' %}
+              <h5 class="description-header text-danger font-weight-bold">مُباع</h5>
+            {% elif book.status == 'rentaled' %}
+              <h5 class="description-header text-secondary font-weight-bold">مؤجَّر</h5>
+            {% else %}
+              <h5 class="description-header text-warning">غير معروف</h5>
+            {% endif %}
+            <span class="description-text text-muted">الحالة</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+          </div>
+
+              <div class="row">
+                <div class="col text-center">
+                  <!--اضف صورة هنا في حالة عدم وجود كتب-->   
+                </div>
+              </div>
+          </div>    
+      </div>
+    </div>
+        <!-- /.container-fluid -->
+  </div>
+      <!-- /.content -->
+</div>
+{% endblock %}
